@@ -1,7 +1,7 @@
 package main
 
 import (
-	api "bookingservice/order/booking"
+	api "bookingservice/order"
 	"context"
 	"fmt"
 	"log"
@@ -40,7 +40,7 @@ type Server struct {
 
 // Реализация методов gRPC
 func (s *Server) GetAllRooms(ctx context.Context, req *api.GetAllRoomsRequest) (*api.GetAllRoomsResponse, error) {
-	rows, err := s.db.Query(ctx, `SELECT id, name, description, available FROM rooms`)
+	rows, err := s.db.Query(ctx, `SELECT id, room_number, description, available, price FROM rooms`)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (s *Server) GetAllRooms(ctx context.Context, req *api.GetAllRoomsRequest) (
 	var rooms []*api.Room
 	for rows.Next() {
 		var room api.Room
-		if err := rows.Scan(&room.Id, &room.Name, &room.Description, &room.Available); err != nil {
+		if err := rows.Scan(&room.Id, &room.RoomNumber, &room.Description, &room.Available, &room.Price); err != nil {
 			return nil, err
 		}
 		rooms = append(rooms, &room)
@@ -60,7 +60,7 @@ func (s *Server) GetAllRooms(ctx context.Context, req *api.GetAllRoomsRequest) (
 
 func (s *Server) GetAvailableRooms(ctx context.Context, req *api.GetAvailableRoomsRequest) (*api.GetAvailableRoomsResponse, error) {
 	rows, err := s.db.Query(ctx, `
-		SELECT id, name, description, available 
+		SELECT id, room_number, description, available, price 
 		FROM rooms 
 		WHERE available = true 
 		AND id NOT IN (
@@ -76,7 +76,7 @@ func (s *Server) GetAvailableRooms(ctx context.Context, req *api.GetAvailableRoo
 	var rooms []*api.Room
 	for rows.Next() {
 		var room api.Room
-		if err := rows.Scan(&room.Id, &room.Name, &room.Description, &room.Available); err != nil {
+		if err := rows.Scan(&room.Id, &room.RoomNumber, &room.Description, &room.Available, &room.Price); err != nil {
 			return nil, err
 		}
 		rooms = append(rooms, &room)
