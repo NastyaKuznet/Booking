@@ -7,7 +7,7 @@ type Room struct {
 	RoomNumber  string
 	Description string
 	Available   bool
-	Price       float64
+	Price       int64
 }
 
 func fromProtoModel(rooms []*booking.Room) []Room {
@@ -15,10 +15,10 @@ func fromProtoModel(rooms []*booking.Room) []Room {
 	for i, room := range rooms {
 		result[i] = Room{
 			Id:          room.Id,
-			RoomNumber:  room.Name,
+			RoomNumber:  room.RoomNumber,
 			Description: room.Description,
 			Available:   room.Available,
-			Price:       0,
+			Price:       room.Price,
 		}
 	}
 	return result
