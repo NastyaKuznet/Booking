@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package notifications;
+
+option go_package = "./;notifications";
+
+// Сервис уведомлений
+service NotificationService {
+    // Отправка уведомления о бронировании
+    rpc SendBookingNotification (BookingNotificationRequest) returns (BookingNotificationResponse);
+}
+
+// Запрос на отправку уведомления
+message BookingNotificationRequest {
+    string room_id = 1;       // ID номера
+    string guest_name = 2;    // Имя гостя
+    string check_in_date = 3; // Дата заезда
+    string check_out_date = 4;// Дата выезда
+}
+
+// Ответ после отправки уведомления
+message BookingNotificationResponse {
+    bool success = 1;         // Успешность отправки
+    string message = 2;       // Сообщение
+}
