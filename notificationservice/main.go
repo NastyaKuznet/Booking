@@ -8,44 +8,94 @@ import (
 
 	pb "notificationservice/api/proto" // Импорт сгенерированного пакета
 
+	"github.com/streadway/amqp" // Добавляем RabbitMQ
 	"google.golang.org/grpc"
 )
 
 // Реализация сервиса уведомлений
-type NotificationServer struct { //Создается структура NotificationServer, которая будет обрабатывать запросы к gRPC-сервису
-	pb.UnimplementedNotificationServiceServer //Это заготовка, автоматически созданная при генерации кода из .proto
+type NotificationServer struct {
+	pb.UnimplementedNotificationServiceServer
+	rabbitChannel *amqp.Channel // Канал RabbitMQ
 }
 
 // Метод для отправки уведомления о бронировании
 func (s *NotificationServer) SendBookingNotification(ctx context.Context, req *pb.BookingNotificationRequest) (*pb.BookingNotificationResponse, error) {
-	log.Printf("Отправка уведомления: %+v\n", req) //Записывает данные запроса (req) в логи для отладки.
+	log.Printf("Отправка уведомления: %+v\n", req)
 
 	// Формирование сообщения
 	message := fmt.Sprintf("Номер %s забронирован гостем %s на даты: %s - %s",
 		req.RoomId, req.GuestName, req.CheckInDate, req.CheckOutDate)
 
-	fmt.Println(message) //Выводит сообщение в консоль
+	// Отправка сообщения в RabbitMQ
+	err := s.rabbitChannel.Publish(
+		"",        // exchange
+		"booking", // routing key (имя очереди)
+		false,     // mandatory
+		false,     // immediate
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte(message),
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("не удалось отправить сообщение в RabbitMQ: %v", err)
+	}
 
-	return &pb.BookingNotificationResponse{ //Указывает, что всё прошло успешно
+	fmt.Println(message)
+
+	return &pb.BookingNotificationResponse{
 		Success: true,
 		Message: "Уведомление успешно отправлено!",
 	}, nil
 }
 
+func initRabbitMQ() (*amqp.Channel, error) {
+	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	if err != nil {
+		return nil, fmt.Errorf("не удалось подключиться к RabbitMQ: %v", err)
+	}
+	channel, err := conn.Channel()
+	if err != nil {
+		return nil, fmt.Errorf("не удалось открыть канал RabbitMQ: %v", err)
+	}
+
+	// Создание очереди
+	_, err = channel.QueueDeclare(
+		"booking", // имя очереди
+		true,      // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
+	)
+	if err != nil {
+		return nil, fmt.Errorf("не удалось объявить очередь: %v", err)
+	}
+
+	return channel, nil
+}
+
 func main() {
-	// Создаем gRPC-сервер
-	port := ":50051" // Порт для gRPC
-	lis, err := net.Listen("tcp", port) //создает TCP-соединение для прослушивания входящих запросов.
+	port := ":50051"
+	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("Не удалось прослушать порт %s: %v", port, err)
 	}
 
 	s := grpc.NewServer()
-	pb.RegisterNotificationServiceServer(s, &NotificationServer{}) //Регистрируется сервис NotificationService с помощью метода RegisterNotificationServiceServer
-	//Сервер теперь знает, как обрабатывать запросы к методу SendBookingNotification
+
+	// Инициализация RabbitMQ
+	rabbitChannel, err := initRabbitMQ()
+	if err != nil {
+		log.Fatalf("Ошибка при инициализации RabbitMQ: %v", err)
+	}
+
+	pb.RegisterNotificationServiceServer(s, &NotificationServer{rabbitChannel: rabbitChannel})
+
+	go startWebServer()
 
 	log.Printf("Запуск gRPC-сервера уведомлений на %s...\n", port)
-	if err := s.Serve(lis); err != nil { //Сервер начинает прослушивать входящие запросы через вызов s.Serve(lis)
+	if err := s.Serve(lis); err != nil {
 		log.Fatalf("Не удалось запустить сервер: %v", err)
 	}
 }
