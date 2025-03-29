@@ -1,7 +1,17 @@
 package handler
 
-import "context"
+import (
+	"context"
+	"mainservice/internal/core/entity"
+)
 
 type BookingClient interface {
-	GetRooms(ctx context.Context) ([]Room, error)
+	GetAllRooms(ctx context.Context) ([]entity.Room, error)
+	GetAvailableRooms(ctx context.Context) ([]entity.Room, error)
+	BookRoom(ctx context.Context, bookingRoom entity.BookingRoom) (entity.BookingRoomState, error)
+	CancelBooking(ctx context.Context, bookingId int64) (entity.CancelingBookingState, error)
+}
+
+type AuthClient interface {
+	
 }

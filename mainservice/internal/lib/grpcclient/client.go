@@ -40,5 +40,68 @@ func (c Client) GetAllRooms(ctx context.Context) ([]Room, error) {
 		slog.Error(err.Error())
 		return nil, err
 	}
-	return fromProtoModel(resp.Rooms), nil
+	return fromProtoModelRoom(resp.Rooms), nil
+}
+
+func (c Client) GetAvailableRooms(ctx context.Context) ([]Room, error) {
+	client := c.conns.Get().(*grpc.ClientConn)
+	defer c.conns.Put(client)
+
+	request := booking.GetAvailableRoomsRequest{}
+
+	resp, err := booking.NewBookingServiceClient(client).GetAvailableRooms(context.Background(), &request)
+
+	if err != nil {
+		slog.Error(err.Error())
+		return nil, err
+	}
+	return fromProtoModelRoom(resp.Rooms), nil
+}
+
+func (c Client) BookRoom(ctx context.Context, bookingRoom BookingRoom) (BookingRoomState, error) {
+	client := c.conns.Get().(*grpc.ClientConn)
+	defer c.conns.Put(client)
+
+	request := booking.BookRoomRequest{
+		RoomId:    bookingRoom.RoomId,
+		UserId:    bookingRoom.UserId,
+		StartDate: bookingRoom.StartDate,
+		EndDate:   bookingRoom.EndDate,
+	}
+
+	resp, err := booking.NewBookingServiceClient(client).BookRoom(context.Background(), &request)
+	if err != nil {
+		slog.Error(err.Error())
+		return BookingRoomState{
+			Success: false,
+			Message: "Fail in BookRoom send",
+		}, err
+	}
+
+	return BookingRoomState{
+		Success: resp.Success,
+		Message: resp.Message,
+	}, nil
+}
+
+func (c Client) CancelBooking(ctx context.Context, bookingId int64) (CancelingBookingState, error) {
+	client := c.conns.Get().(*grpc.ClientConn)
+	defer c.conns.Put(client)
+
+	request := booking.CancelBookingRequest{
+		BookingId: bookingId,
+	}
+
+	resp, err := booking.NewBookingServiceClient(client).CancelBooking(context.Background(), &request)
+	if err != nil {
+		slog.Error(err.Error())
+		return CancelingBookingState{
+			Success: false,
+		}, err
+	}
+
+	return CancelingBookingState{
+		Success: resp.Success,
+		Message: resp.Message,
+	}, nil
 }

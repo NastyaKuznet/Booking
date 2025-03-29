@@ -4,6 +4,9 @@ router:
 booking_service:
   host: "bookingservice"
   port: 50051
+auth_service:
+  host: "authservice"
+  port: 50051
 rabbit:
   login: "guest"
   password: "guest"
