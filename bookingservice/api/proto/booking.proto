@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package booking;
+
+option go_package = "booking/";
+
+service BookingService {
+  // Получить список всех номеров
+  rpc GetAllRooms(GetAllRoomsRequest) returns (GetAllRoomsResponse);
+
+  // Получить список доступных номеров
+  rpc GetAvailableRooms(GetAvailableRoomsRequest) returns (GetAvailableRoomsResponse);
+
+  // Забронировать номер
+  rpc BookRoom(BookRoomRequest) returns (BookRoomResponse);
+
+  // Отменить бронь
+  rpc CancelBooking(CancelBookingRequest) returns (CancelBookingResponse);
+}
+
+// Запросы и ответы
+message GetAllRoomsRequest {}
+
+message GetAllRoomsResponse {
+  repeated Room rooms = 1;
+}
+
+message GetAvailableRoomsRequest {
+  string start_date = 1;
+  string end_date = 2;
+}
+
+message GetAvailableRoomsResponse {
+  repeated Room rooms = 1;
+}
+
+message BookRoomRequest {
+  int64 room_id = 1;
+  int64 user_id = 2;
+  string start_date = 3;
+  string end_date = 4;
+}
+
+message BookRoomResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message CancelBookingRequest {
+  int64 booking_id = 1;
+}
+
+message CancelBookingResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Модели данных
+message Room {
+  int64 id = 1;
+  string room_number = 2;
+  string description = 3;
+  bool available = 4;
+  int64 price = 5;
+}
