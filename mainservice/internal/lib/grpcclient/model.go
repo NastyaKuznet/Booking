@@ -7,18 +7,35 @@ type Room struct {
 	RoomNumber  string
 	Description string
 	Available   bool
-	Price       float64
+	Price       int64
 }
 
-func fromProtoModel(rooms []*booking.Room) []Room {
+type BookingRoom struct {
+	RoomId    int64
+	UserId    int64
+	StartDate string
+	EndDate   string
+}
+
+type BookingRoomState struct {
+	Success bool
+	Message string
+}
+
+type CancelingBookingState struct {
+	Success bool
+	Message string
+}
+
+func fromProtoModelRoom(rooms []*booking.Room) []Room {
 	result := make([]Room, len(rooms))
 	for i, room := range rooms {
 		result[i] = Room{
 			Id:          room.Id,
-			RoomNumber:  room.Name,
+			RoomNumber:  room.RoomNumber,
 			Description: room.Description,
 			Available:   room.Available,
-			Price:       0,
+			Price:       room.Price,
 		}
 	}
 	return result

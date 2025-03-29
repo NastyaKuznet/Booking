@@ -10,6 +10,8 @@ import (
 func InitRouter(ctx context.Context, config Config, handler *handler.Handler) *gin.Engine {
 	router := gin.Default()
 	router.GET("/rooms", handler.GetAllRooms)
-	//тут дальше остальные эндпоинты
+	router.GET("/rooms/avalaible", handler.GetAvailableRooms)
+	router.POST("/booking", handler.BookRoom)
+	router.DELETE("/booking", handler.CancelBooking)
 	return router
 }
