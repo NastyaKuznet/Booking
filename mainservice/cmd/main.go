@@ -7,7 +7,8 @@ import (
 	"mainservice/internal/core/usecase"
 	"mainservice/internal/delivery/httpengine"
 	"mainservice/internal/delivery/httpengine/handler"
-	"mainservice/internal/lib/grpcclient"
+	"mainservice/internal/lib/authclient"
+	"mainservice/internal/lib/booking"
 	"mainservice/internal/lib/rabbitclient"
 	"mainservice/internal/repository/datasources/grpc"
 	"net/http"
@@ -18,9 +19,10 @@ import (
 )
 
 type Config struct {
-	BookingService grpcclient.Config   `yaml:"booking_service"`
+	BookingService booking.Config      `yaml:"booking_service"`
 	Router         httpengine.Config   `yaml:"router"`
 	Rabbit         rabbitclient.Config `yaml:"rabbit"`
+	AuthService    authclient.Config   `yaml:"auth_service"`
 }
 
 func loadConfig(path string) (*Config, error) {
@@ -47,17 +49,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	bookingClient := grpcclient.NewClient(cfg.BookingService)
+	bookingClient := booking.NewClient(cfg.BookingService)
+	authClient := authclient.NewClient(cfg.AuthService)
 
-	repo := grpc.NewBookingRepository(bookingClient)
+	bookingRepo := grpc.NewBookingRepository(bookingClient)
+	authRepo := grpc.NewAuthRepository(authClient)
 
 	notificationClient := rabbitclient.NewRabbirClient(cfg.Rabbit)
 
-	uc := usecase.NewUsecase(repo, notificationClient)
+	bookingUc := usecase.NewUsecaseBooking(bookingRepo, notificationClient)
+	authUc := usecase.NewUsecaseAuth(authRepo, notificationClient)
 
-	bookingHandler := handler.NewHandler(uc)
+	bookingHandler := handler.NewHandlerBooking(bookingUc)
+	authHandler := handler.NewHandlerAuth(authUc)
 
-	router := httpengine.InitRouter(context.Background(), cfg.Router, bookingHandler)
+	router := httpengine.InitRouter(context.Background(), cfg.Router, bookingHandler, authHandler)
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", cfg.Router.Port), router); err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)

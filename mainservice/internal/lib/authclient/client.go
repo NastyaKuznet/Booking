@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-
+	order "mainservice/product/auth"
 	"sync"
 
 	"google.golang.org/grpc"
@@ -29,31 +29,37 @@ func NewClient(config Config) Client {
 	return Client{conns: pool}
 }
 
-func (c Client) GetUser(ctx context.Context, login string, hashPassword string) (string, error) {
-	/*client := c.conns.Get().(*grpc.ClientConn)
+func (c Client) Login(ctx context.Context, login string, password string) (string, error) {
+	client := c.conns.Get().(*grpc.ClientConn)
 	defer c.conns.Put(client)
 
-	request := booking.GetAllRoomsRequest{}
+	request := order.LoginRequest{
+		Login:    login,
+		Password: password,
+	}
 
-	resp, err := booking.NewBookingServiceClient(client).GetAllRooms(context.Background(), &request)
+	resp, err := order.NewAuthServiceClient(client).Login(context.Background(), &request)
 	if err != nil {
 		slog.Error(err.Error())
-		return nil, err
-	}*/
-	return "login", nil
+		return "", err
+	}
+	return resp.Token, nil
 }
 
-func (c Client) Register(ctx context.Context, login string, hashPassword string) (string, error) {
+func (c Client) Register(ctx context.Context, login string, password string) (string, error) {
 	//https://github.com/crutchM/crud/blob/main/internal/repository/postgres/authRepository.go
-	/*client := c.conns.Get().(*grpc.ClientConn)
+	client := c.conns.Get().(*grpc.ClientConn)
 	defer c.conns.Put(client)
 
-	request := booking.GetAllRoomsRequest{}
+	request := order.RegisterRequest{
+		Login:    login,
+		Password: password,
+	}
 
-	resp, err := booking.NewBookingServiceClient(client).GetAllRooms(context.Background(), &request)
+	resp, err := order.NewAuthServiceClient(client).Register(context.Background(), &request)
 	if err != nil {
 		slog.Error(err.Error())
-		return nil, err
-	}*/
-	return "login", nil
+		return "", err
+	}
+	return resp.Token, nil
 }

@@ -5,16 +5,15 @@ import (
 	"fmt"
 	"log/slog"
 	"mainservice/internal/core/entity"
-	"mainservice/internal/lib/grpcclient"
+	"mainservice/internal/lib/booking"
 )
 
 type UsecaseBooking struct {
 	bookingClient      BookingClient
 	notificationClient NotificationClient
-	authService        AuthClient
 }
 
-func NewUsecase(bookingClient BookingClient, notificationClient NotificationClient) UsecaseBooking {
+func NewUsecaseBooking(bookingClient BookingClient, notificationClient NotificationClient) UsecaseBooking {
 	return UsecaseBooking{
 		bookingClient:      bookingClient,
 		notificationClient: notificationClient,
@@ -35,7 +34,7 @@ func (uc UsecaseBooking) GetAllRooms(ctx context.Context) ([]entity.Room, error)
 		return nil, err
 	}
 
-	roomPointers := make([]*grpcclient.Room, len(rooms))
+	roomPointers := make([]*booking.Room, len(rooms))
 	for i := range rooms {
 		roomPointers[i] = &rooms[i]
 	}
@@ -58,7 +57,7 @@ func (uc UsecaseBooking) GetAvailableRooms(ctx context.Context) ([]entity.Room, 
 		return nil, err
 	}
 
-	roomPointers := make([]*grpcclient.Room, len(rooms))
+	roomPointers := make([]*booking.Room, len(rooms))
 	for i := range rooms {
 		roomPointers[i] = &rooms[i]
 	}
@@ -67,7 +66,7 @@ func (uc UsecaseBooking) GetAvailableRooms(ctx context.Context) ([]entity.Room, 
 }
 
 func (uc UsecaseBooking) BookRoom(ctx context.Context, bookingRoom entity.BookingRoom) (entity.BookingRoomState, error) {
-	bookingRoomState, err := uc.bookingClient.BookRoom(ctx, grpcclient.BookingRoom{
+	bookingRoomState, err := uc.bookingClient.BookRoom(ctx, booking.BookingRoom{
 		RoomId:    bookingRoom.RoomId,
 		UserId:    bookingRoom.UserId,
 		StartDate: bookingRoom.StartDate,
@@ -123,42 +122,4 @@ func (uc UsecaseBooking) CancelBooking(ctx context.Context, bookingId int64) (en
 		Success: cancelingBookingState.Success,
 		Message: cancelingBookingState.Message,
 	}, nil
-}
-
-func (uc UsecaseBooking) Register(ctx context.Context, login string, hashPassword string) (string, error) {
-	login, err := uc.authService.Register(ctx, login, hashPassword)
-	if err != nil {
-		slog.Error("register error", "err", err)
-		return "", err
-	}
-
-	err = uc.notificationClient.Publish(ctx, fmt.Sprintf(
-		"User %s was register", login))
-
-	if err != nil {
-		slog.Error("send notification error", "err", err)
-
-		return "", err
-	}
-
-	return login, nil
-}
-
-func (uc UsecaseBooking) GetUser(ctx context.Context, login string, hashPassword string) (string, error) {
-	login, err := uc.authService.GetUser(ctx, login, hashPassword)
-	if err != nil {
-		slog.Error("register error", "err", err)
-		return "", err
-	}
-
-	err = uc.notificationClient.Publish(ctx, fmt.Sprintf(
-		"User %s was get", login))
-
-	if err != nil {
-		slog.Error("send notification error", "err", err)
-
-		return "", err
-	}
-
-	return login, nil
 }

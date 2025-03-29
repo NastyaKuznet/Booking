@@ -1,7 +1,7 @@
 package entity
 
 import (
-	"mainservice/internal/lib/grpcclient"
+	"mainservice/internal/lib/booking"
 )
 
 type Room struct {
@@ -29,7 +29,7 @@ type CancelingBookingState struct {
 	Message string
 }
 
-func FromProtoModelRooms(rooms []*grpcclient.Room) []Room {
+func FromProtoModelRooms(rooms []*booking.Room) []Room {
 	result := make([]Room, len(rooms))
 	for i, room := range rooms {
 		result[i] = Room{

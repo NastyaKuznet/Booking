@@ -7,16 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type Handler struct {
+type HandlerBooking struct {
 	bookingClient BookingClient
-	
 }
 
-func NewHandler(client BookingClient) *Handler {
-	return &Handler{bookingClient: client}
+func NewHandlerBooking(client BookingClient) *HandlerBooking {
+	return &HandlerBooking{bookingClient: client}
 }
 
-func (h *Handler) GetAllRooms(c *gin.Context) {
+func (h *HandlerBooking) GetAllRooms(c *gin.Context) {
 	rooms, err := h.bookingClient.GetAllRooms(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -25,7 +24,7 @@ func (h *Handler) GetAllRooms(c *gin.Context) {
 	c.JSON(http.StatusOK, fromEntityRooms(rooms))
 }
 
-func (h *Handler) GetAvailableRooms(c *gin.Context) {
+func (h *HandlerBooking) GetAvailableRooms(c *gin.Context) {
 	rooms, err := h.bookingClient.GetAvailableRooms(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -34,7 +33,7 @@ func (h *Handler) GetAvailableRooms(c *gin.Context) {
 	c.JSON(http.StatusOK, fromEntityRooms(rooms))
 }
 
-func (h *Handler) BookRoom(c *gin.Context) {
+func (h *HandlerBooking) BookRoom(c *gin.Context) {
 	var req BookingRoom
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -57,7 +56,7 @@ func (h *Handler) BookRoom(c *gin.Context) {
 	})
 }
 
-func (h *Handler) CancelBooking(c *gin.Context) {
+func (h *HandlerBooking) CancelBooking(c *gin.Context) {
 	var req BookingId
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -74,4 +73,3 @@ func (h *Handler) CancelBooking(c *gin.Context) {
 		Message: cancelBookingState.Message,
 	})
 }
-

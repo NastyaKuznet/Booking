@@ -13,20 +13,20 @@ func NewAuthRepository(client AuthClient) *AuthRepository {
 	return &AuthRepository{client: client}
 }
 
-func (b *AuthRepository) GetUser(ctx context.Context, login string, hashPassword string) (string, error) {
-	login, err := b.client.GetUser(ctx, login, hashPassword)
+func (b *AuthRepository) Login(ctx context.Context, login string, password string) (string, error) {
+	token, err := b.client.Login(ctx, login, password)
 
 	if err != nil {
 		return "", fmt.Errorf("%w: %w", ErrInternal, err)
 	}
-	return login, err
+	return token, err
 }
 
-func (b *AuthRepository) Register(ctx context.Context, login string, hashPassword string) (string, error) {
-	login, err := b.client.Register(ctx, login, hashPassword)
+func (b *AuthRepository) Register(ctx context.Context, login string, password string) (string, error) {
+	token, err := b.client.Register(ctx, login, password)
 
 	if err != nil {
 		return "", fmt.Errorf("%w: %w", ErrInternal, err)
 	}
-	return login, err
+	return token, err
 }

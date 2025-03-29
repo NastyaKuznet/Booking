@@ -1,37 +1,52 @@
 package handler
 
 import (
-	"mainservice/internal/core/interface/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
+
+type HandlerAuth struct {
+	authClient AuthClient
+}
+
+func NewHandlerAuth(authClient AuthClient) *HandlerAuth {
+	return &HandlerAuth{authClient: authClient}
+}
 
 type user struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }
 
-func (h *Handler) RegisterUser(service service.AuthService) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var user user
+func (h *HandlerAuth) RegisterUser(c *gin.Context) {
+	var user user
 
-		if err := c.BindJSON(&user); err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest,
-				gin.H{"message": "неверное тело запроса"})
-
-			return
-		}
-
-		token, err := service.Register(c.Request.Context(), user.Login, user.Password)
-
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest,
-				gin.H{"message": err.Error()})
-
-			return
-		}
-
-		c.JSON(http.StatusOK, token)
+	if err := c.BindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
+
+	token, err := h.authClient.Register(c.Request.Context(), user.Login, user.Password)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	c.JSON(http.StatusOK, token)
+}
+
+func (h *HandlerAuth) LoginUser(c *gin.Context) {
+	var user user
+
+	if err := c.BindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
+	token, err := h.authClient.Login(c.Request.Context(), user.Login, user.Password)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+
+	c.JSON(http.StatusOK, token)
 }

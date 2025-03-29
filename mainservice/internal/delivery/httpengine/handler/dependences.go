@@ -13,5 +13,6 @@ type BookingClient interface {
 }
 
 type AuthClient interface {
-	
+	Register(ctx context.Context, login string, hashPassword string) (string, error)
+	Login(ctx context.Context, login string, hashPassword string) (string, error)
 }

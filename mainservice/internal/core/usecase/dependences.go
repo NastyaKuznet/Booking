@@ -2,14 +2,14 @@ package usecase
 
 import (
 	"context"
-	"mainservice/internal/lib/grpcclient"
+	"mainservice/internal/lib/booking"
 )
 
 type BookingClient interface {
-	GetAllRooms(ctx context.Context) ([]grpcclient.Room, error)
-	GetAvailableRooms(ctx context.Context) ([]grpcclient.Room, error)
-	BookRoom(ctx context.Context, bookingRoom grpcclient.BookingRoom) (grpcclient.BookingRoomState, error)
-	CancelBooking(ctx context.Context, bookingId int64) (grpcclient.CancelingBookingState, error)
+	GetAllRooms(ctx context.Context) ([]booking.Room, error)
+	GetAvailableRooms(ctx context.Context) ([]booking.Room, error)
+	BookRoom(ctx context.Context, bookingRoom booking.BookingRoom) (booking.BookingRoomState, error)
+	CancelBooking(ctx context.Context, bookingId int64) (booking.CancelingBookingState, error)
 }
 
 type NotificationClient interface {
@@ -17,6 +17,6 @@ type NotificationClient interface {
 }
 
 type AuthClient interface {
-	GetUser(ctx context.Context, login string, hashPassword string) (string, error)
+	Login(ctx context.Context, login string, hashPassword string) (string, error)
 	Register(ctx context.Context, login string, hashPassword string) (string, error)
 }

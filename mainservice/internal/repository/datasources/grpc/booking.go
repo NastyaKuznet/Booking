@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 	"fmt"
-	"mainservice/internal/lib/grpcclient"
+	"mainservice/internal/lib/booking"
 )
 
 type bookingRepository struct {
@@ -14,7 +14,7 @@ func NewBookingRepository(client BookingClient) *bookingRepository {
 	return &bookingRepository{client: client}
 }
 
-func (b *bookingRepository) GetAllRooms(ctx context.Context) ([]grpcclient.Room, error) {
+func (b *bookingRepository) GetAllRooms(ctx context.Context) ([]booking.Room, error) {
 	rooms, err := b.client.GetAllRooms(ctx)
 
 	if err != nil {
@@ -26,7 +26,7 @@ func (b *bookingRepository) GetAllRooms(ctx context.Context) ([]grpcclient.Room,
 	return rooms, err
 }
 
-func (b *bookingRepository) GetAvailableRooms(ctx context.Context) ([]grpcclient.Room, error) {
+func (b *bookingRepository) GetAvailableRooms(ctx context.Context) ([]booking.Room, error) {
 	rooms, err := b.client.GetAvailableRooms(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
@@ -34,11 +34,11 @@ func (b *bookingRepository) GetAvailableRooms(ctx context.Context) ([]grpcclient
 	return rooms, err
 }
 
-func (b *bookingRepository) BookRoom(ctx context.Context, bookingRoom grpcclient.BookingRoom) (
-	grpcclient.BookingRoomState, error) {
+func (b *bookingRepository) BookRoom(ctx context.Context, bookingRoom booking.BookingRoom) (
+	booking.BookingRoomState, error) {
 	bookingRoomState, err := b.client.BookRoom(ctx, bookingRoom)
 	if err != nil {
-		return grpcclient.BookingRoomState{
+		return booking.BookingRoomState{
 			Success: false,
 			Message: "Internal err",
 		}, fmt.Errorf("%w: %w", ErrInternal, err)
@@ -47,10 +47,10 @@ func (b *bookingRepository) BookRoom(ctx context.Context, bookingRoom grpcclient
 }
 
 func (b *bookingRepository) CancelBooking(ctx context.Context, bookingId int64) (
-	grpcclient.CancelingBookingState, error) {
+	booking.CancelingBookingState, error) {
 	cancelingBookingState, err := b.client.CancelBooking(ctx, bookingId)
 	if err != nil {
-		return grpcclient.CancelingBookingState{
+		return booking.CancelingBookingState{
 			Success: false,
 			Message: "Internal err",
 		}, fmt.Errorf("%w: %w", ErrInternal, err)

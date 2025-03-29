@@ -7,11 +7,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitRouter(ctx context.Context, config Config, handler *handler.Handler) *gin.Engine {
+func InitRouter(
+	ctx context.Context,
+	config Config,
+	handlerBooking *handler.HandlerBooking,
+	handlerAuth *handler.HandlerAuth,
+) *gin.Engine {
 	router := gin.Default()
-	router.GET("/rooms", handler.GetAllRooms)
-	router.GET("/rooms/avalaible", handler.GetAvailableRooms)
-	router.POST("/booking", handler.BookRoom)
-	router.DELETE("/booking", handler.CancelBooking)
+	router.GET("/rooms", handlerBooking.GetAllRooms)
+	router.GET("/rooms/avalaible", handlerBooking.GetAvailableRooms)
+	router.POST("/booking", handlerBooking.BookRoom)
+	router.DELETE("/booking", handlerBooking.CancelBooking)
+	router.POST("/regist", handlerAuth.RegisterUser)
+	router.POST("/login", handlerAuth.LoginUser)
 	return router
 }
