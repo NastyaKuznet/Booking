@@ -9,6 +9,7 @@ import (
 	"net"
 	"time"
 
+	"authorizationservice/internal/middleware"
 	"authorizationservice/order"
 
 	"github.com/golang-jwt/jwt"
@@ -40,7 +41,9 @@ func main() {
 		log.Fatalf("failed to connect: %v", err)
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(
+		grpc.UnaryInterceptor(middleware.AuthInterceptor),
+	)
 	order.RegisterAuthServiceServer(s, &AuthServer{db: conn})
 	log.Println("Starting auth service...")
 	if err := s.Serve(listener); err != nil {
