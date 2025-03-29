@@ -14,7 +14,7 @@ import (
 const connection = "host=%s port=%s user=%s password=%s dbname=%s sslmode=%s"
 
 func main() {
-	listener, err := net.Listen("tcp", ":50052") // Порт для bookingservice
+	listener, err := net.Listen("tcp", ":50052")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -86,14 +86,16 @@ func (s *Server) GetAvailableRooms(ctx context.Context, req *api.GetAvailableRoo
 }
 
 func (s *Server) BookRoom(ctx context.Context, req *api.BookRoomRequest) (*api.BookRoomResponse, error) {
-	_, err := s.db.Exec(ctx, `
+	var bookingID int64
+	err := s.db.QueryRow(ctx, `
 		INSERT INTO bookings (room_id, user_id, start_date, end_date) 
-		VALUES ($1, $2, $3, $4)`, req.RoomId, req.UserId, req.StartDate, req.EndDate)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id`, req.RoomId, req.UserId, req.StartDate, req.EndDate).Scan(&bookingID)
 	if err != nil {
 		return &api.BookRoomResponse{Success: false, Message: "Failed to book room"}, err
 	}
 
-	return &api.BookRoomResponse{Success: true, Message: "Room booked successfully"}, nil
+	return &api.BookRoomResponse{Success: true, Message: "Room booked successfully", BookingId: bookingID}, nil
 }
 
 func (s *Server) CancelBooking(ctx context.Context, req *api.CancelBookingRequest) (*api.CancelBookingResponse, error) {
