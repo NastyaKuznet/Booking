@@ -16,10 +16,18 @@ service BookingService {
 
   // Отменить бронь
   rpc CancelBooking(CancelBookingRequest) returns (CancelBookingResponse);
+
+  // Получить все бронирования
+  rpc GetAllBookings(GetAllBookingsRequest) returns (GetAllBookingsResponse);
 }
 
-// Запросы и ответы
 message GetAllRoomsRequest {}
+
+message GetAllBookingsRequest {}
+
+message GetAllBookingsResponse {
+  repeated Booking bookings = 1;
+}
 
 message GetAllRoomsResponse {
   repeated Room rooms = 1;
@@ -56,11 +64,18 @@ message CancelBookingResponse {
   string message = 2;
 }
 
-// Модели данных
 message Room {
   int64 id = 1;
   string room_number = 2;
   string description = 3;
   bool available = 4;
   int64 price = 5;
+}
+
+message Booking {
+  int64 id = 1;
+  int64 room_id = 2;
+  int64 user_id = 3;
+  string start_date = 4;
+  string end_date = 5;
 }
