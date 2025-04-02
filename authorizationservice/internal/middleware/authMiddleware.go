@@ -25,7 +25,9 @@ const (
 )
 
 func AuthInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	if info.FullMethod == "/order.AuthService/Register" || info.FullMethod == "/order.AuthService/Login" {
+	if info.FullMethod == "/order.AuthService/Register" ||
+		info.FullMethod == "/order.AuthService/Login" ||
+		info.FullMethod == "/order.AuthService/ValidateToken" {
 		return handler(ctx, req)
 	}
 
