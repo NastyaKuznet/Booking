@@ -1,4 +1,4 @@
-package grpcclient
+package booking
 
 import (
 	"context"
@@ -43,11 +43,14 @@ func (c Client) GetAllRooms(ctx context.Context) ([]Room, error) {
 	return fromProtoModelRoom(resp.Rooms), nil
 }
 
-func (c Client) GetAvailableRooms(ctx context.Context) ([]Room, error) {
+func (c Client) GetAvailableRooms(ctx context.Context, startDate string, endDate string) ([]Room, error) {
 	client := c.conns.Get().(*grpc.ClientConn)
 	defer c.conns.Put(client)
 
-	request := booking.GetAvailableRoomsRequest{}
+	request := booking.GetAvailableRoomsRequest{
+		StartDate: startDate,
+		EndDate:   endDate,
+	}
 
 	resp, err := booking.NewBookingServiceClient(client).GetAvailableRooms(context.Background(), &request)
 
@@ -104,4 +107,19 @@ func (c Client) CancelBooking(ctx context.Context, bookingId int64) (CancelingBo
 		Success: resp.Success,
 		Message: resp.Message,
 	}, nil
+}
+
+func (c Client) GetAllBookings(ctx context.Context) ([]Booking, error) {
+	client := c.conns.Get().(*grpc.ClientConn)
+	defer c.conns.Put(client)
+
+	request := booking.GetAllBookingsRequest{}
+
+	resp, err := booking.NewBookingServiceClient(client).GetAllBookings(context.Background(), &request)
+	if err != nil {
+		slog.Error(err.Error())
+		return nil, err
+	}
+
+	return fromProtoModelBooking(resp.Bookings), nil
 }

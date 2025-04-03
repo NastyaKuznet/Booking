@@ -16,7 +16,13 @@ func NewHandlerBooking(client BookingClient) *HandlerBooking {
 }
 
 func (h *HandlerBooking) GetAllRooms(c *gin.Context) {
-	rooms, err := h.bookingClient.GetAllRooms(c.Request.Context())
+	var req Token
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
+	rooms, err := h.bookingClient.GetAllRooms(c.Request.Context(), req.Token)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -25,7 +31,13 @@ func (h *HandlerBooking) GetAllRooms(c *gin.Context) {
 }
 
 func (h *HandlerBooking) GetAvailableRooms(c *gin.Context) {
-	rooms, err := h.bookingClient.GetAvailableRooms(c.Request.Context())
+	var req AvailableRoom
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+
+	rooms, err := h.bookingClient.GetAvailableRooms(c.Request.Context(), req.StartDate, req.EndDate, req.Token)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -45,7 +57,7 @@ func (h *HandlerBooking) BookRoom(c *gin.Context) {
 		UserId:    req.UserId,
 		StartDate: req.StartDate,
 		EndDate:   req.EndDate,
-	})
+	}, req.Token)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
@@ -63,7 +75,7 @@ func (h *HandlerBooking) CancelBooking(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	cancelBookingState, err := h.bookingClient.CancelBooking(c.Request.Context(), req.BookingId)
+	cancelBookingState, err := h.bookingClient.CancelBooking(c.Request.Context(), req.BookingId, req.Token)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
@@ -72,4 +84,18 @@ func (h *HandlerBooking) CancelBooking(c *gin.Context) {
 		Success: cancelBookingState.Success,
 		Message: cancelBookingState.Message,
 	})
+}
+
+func (h *HandlerBooking) GetAllBookings(c *gin.Context) {
+	var req Token
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	bookings, err := h.bookingClient.GetAllBookings(c.Request.Context(), req.Token)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, fromEntityBookings(bookings))
 }

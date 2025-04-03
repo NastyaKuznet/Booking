@@ -43,7 +43,7 @@ func loadConfig(path string) (*Config, error) {
 func main() {
 	gin.SetMode(gin.DebugMode)
 
-	cfg, err := loadConfig("config.yaml")
+	cfg, err := loadConfig("config.yml")
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
@@ -57,7 +57,7 @@ func main() {
 
 	notificationClient := rabbitclient.NewRabbirClient(cfg.Rabbit)
 
-	bookingUc := usecase.NewUsecaseBooking(bookingRepo, notificationClient)
+	bookingUc := usecase.NewUsecaseBooking(bookingRepo, notificationClient, authRepo)
 	authUc := usecase.NewUsecaseAuth(authRepo, notificationClient)
 
 	bookingHandler := handler.NewHandlerBooking(bookingUc)

@@ -1,8 +1,9 @@
-FROM golang:1.24-alpine AS builder
+FROM golang:latest AS builder
 WORKDIR /app
-COPY . .
+COPY go.mod go.sum ./
 RUN go mod download
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bookingservice ./order
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bookingservice ./cmd
 
 FROM alpine:latest
 WORKDIR /app

@@ -47,7 +47,6 @@ func (c Client) Login(ctx context.Context, login string, password string) (strin
 }
 
 func (c Client) Register(ctx context.Context, login string, password string) (string, error) {
-	//https://github.com/crutchM/crud/blob/main/internal/repository/postgres/authRepository.go
 	client := c.conns.Get().(*grpc.ClientConn)
 	defer c.conns.Put(client)
 
@@ -62,4 +61,28 @@ func (c Client) Register(ctx context.Context, login string, password string) (st
 		return "", err
 	}
 	return resp.Token, nil
+}
+
+func (c Client) ValidateToken(ctx context.Context, token string) (ValidateToken, error) {
+	client := c.conns.Get().(*grpc.ClientConn)
+	defer c.conns.Put(client)
+
+	request := order.ValidateTokenRequest{
+		Token: token,
+	}
+
+	resp, err := order.NewAuthServiceClient(client).ValidateToken(context.Background(), &request)
+	if err != nil {
+		slog.Error(err.Error())
+		return ValidateToken{
+			Valid: false,
+			Error: "Error from auth service",
+		}, err
+	}
+	return ValidateToken{
+		Valid:  resp.Valid,
+		Error:  resp.Error,
+		Login:  resp.Login,
+		UserId: resp.UserId,
+	}, nil
 }

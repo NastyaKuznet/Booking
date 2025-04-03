@@ -6,10 +6,11 @@ import (
 )
 
 type BookingClient interface {
-	GetAllRooms(ctx context.Context) ([]entity.Room, error)
-	GetAvailableRooms(ctx context.Context) ([]entity.Room, error)
-	BookRoom(ctx context.Context, bookingRoom entity.BookingRoom) (entity.BookingRoomState, error)
-	CancelBooking(ctx context.Context, bookingId int64) (entity.CancelingBookingState, error)
+	GetAllRooms(ctx context.Context, token string) ([]entity.Room, error)
+	GetAvailableRooms(ctx context.Context, startDate string, endDate string, token string) ([]entity.Room, error)
+	BookRoom(ctx context.Context, bookingRoom entity.BookingRoom, token string) (entity.BookingRoomState, error)
+	CancelBooking(ctx context.Context, bookingId int64, token string) (entity.CancelingBookingState, error)
+	GetAllBookings(ctx context.Context, token string) ([]entity.Booking, error)
 }
 
 type AuthClient interface {

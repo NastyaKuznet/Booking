@@ -29,7 +29,7 @@ type AuthServer struct {
 }
 
 func main() {
-	listener, err := net.Listen("tcp", ":50051")
+	listener, err := net.Listen("tcp", ":50053")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -124,7 +124,7 @@ func (s *AuthServer) ValidateToken(ctx context.Context, req *order.ValidateToken
 		}, nil
 	}
 
-	var userID int32
+	var userID int64
 	err = s.db.QueryRow(ctx, "SELECT id FROM users WHERE login = $1", claims.Subject).Scan(&userID)
 	if err != nil {
 		return &order.ValidateTokenResponse{

@@ -48,7 +48,7 @@ func (s *Server) GetAllRooms(ctx context.Context, req *api.GetAllRoomsRequest) (
 	var rooms []*api.Room
 	for rows.Next() {
 		var room api.Room
-		if err := rows.Scan(&room.Id, &room.RoomNumber, &room.Description, &room.Available, &room.Price); err != nil {
+		if err := rows.Scan(&room.Id, &room.RoomNumber, &room.Description, &room.Price); err != nil {
 			return nil, err
 		}
 		rooms = append(rooms, &room)
@@ -61,8 +61,7 @@ func (s *Server) GetAvailableRooms(ctx context.Context, req *api.GetAvailableRoo
 	rows, err := s.db.Query(ctx, `
 		SELECT id, room_number, description, price 
 		FROM rooms 
-		WHERE available = true 
-		AND id NOT IN (
+		WHERE id NOT IN (
 			SELECT room_id 
 			FROM bookings 
 			WHERE (start_date <= $2 AND end_date >= $1)
@@ -75,7 +74,7 @@ func (s *Server) GetAvailableRooms(ctx context.Context, req *api.GetAvailableRoo
 	var rooms []*api.Room
 	for rows.Next() {
 		var room api.Room
-		if err := rows.Scan(&room.Id, &room.RoomNumber, &room.Description, &room.Available, &room.Price); err != nil {
+		if err := rows.Scan(&room.Id, &room.RoomNumber, &room.Description, &room.Price); err != nil {
 			return nil, err
 		}
 		rooms = append(rooms, &room)
@@ -108,9 +107,11 @@ func (s *Server) CancelBooking(ctx context.Context, req *api.CancelBookingReques
 
 func (s *Server) GetAllBookings(ctx context.Context, req *api.GetAllBookingsRequest) (*api.GetAllBookingsResponse, error) {
 	rows, err := s.db.Query(ctx, `
-        SELECT id, room_id, user_id, start_date, end_date 
-        FROM bookings
-        ORDER BY start_date DESC`)
+    SELECT id, room_id, user_id, 
+           to_char(start_date, 'YYYY-MM-DD'), 
+           to_char(end_date, 'YYYY-MM-DD')
+    FROM bookings
+    ORDER BY start_date DESC`)
 	if err != nil {
 		return nil, err
 	}

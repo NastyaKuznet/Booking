@@ -3,13 +3,13 @@ router:
   port: "8021"
 booking_service:
   host: "bookingservice"
-  port: 50051
+  port: 50052
 auth_service:
   host: "authservice"
-  port: 50051
+  port: 50053
 rabbit:
   login: "guest"
   password: "guest"
   host: "rabbit"
   port: "5672"
-  channel: "orders"
+  channel: "booking"

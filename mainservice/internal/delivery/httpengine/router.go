@@ -16,6 +16,7 @@ func InitRouter(
 	router := gin.Default()
 	router.GET("/rooms", handlerBooking.GetAllRooms)
 	router.GET("/rooms/avalaible", handlerBooking.GetAvailableRooms)
+	router.GET("/rooms/booking", handlerBooking.GetAllBookings)
 	router.POST("/booking", handlerBooking.BookRoom)
 	router.DELETE("/booking", handlerBooking.CancelBooking)
 	router.POST("/regist", handlerAuth.RegisterUser)

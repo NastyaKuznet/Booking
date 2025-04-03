@@ -26,8 +26,8 @@ func (b *bookingRepository) GetAllRooms(ctx context.Context) ([]booking.Room, er
 	return rooms, err
 }
 
-func (b *bookingRepository) GetAvailableRooms(ctx context.Context) ([]booking.Room, error) {
-	rooms, err := b.client.GetAvailableRooms(ctx)
+func (b *bookingRepository) GetAvailableRooms(ctx context.Context, startDate string, endDate string) ([]booking.Room, error) {
+	rooms, err := b.client.GetAvailableRooms(ctx, startDate, endDate)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
 	}
@@ -56,4 +56,12 @@ func (b *bookingRepository) CancelBooking(ctx context.Context, bookingId int64) 
 		}, fmt.Errorf("%w: %w", ErrInternal, err)
 	}
 	return cancelingBookingState, err
+}
+
+func (b *bookingRepository) GetAllBookings(ctx context.Context) ([]booking.Booking, error) {
+	bookings, err := b.client.GetAllBookings(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrInternal, err)
+	}
+	return bookings, err
 }

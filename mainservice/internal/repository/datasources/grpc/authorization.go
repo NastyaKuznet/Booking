@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"mainservice/internal/lib/authclient"
 )
 
 type AuthRepository struct {
@@ -29,4 +30,13 @@ func (b *AuthRepository) Register(ctx context.Context, login string, password st
 		return "", fmt.Errorf("%w: %w", ErrInternal, err)
 	}
 	return token, err
+}
+
+func (b *AuthRepository) ValidateToken(ctx context.Context, token string) (authclient.ValidateToken, error) {
+	validateToken, err := b.client.ValidateToken(ctx, token)
+
+	if err != nil {
+		return validateToken, fmt.Errorf("%w: %w", ErrInternal, err)
+	}
+	return validateToken, err
 }
