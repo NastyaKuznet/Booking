@@ -2,12 +2,11 @@ syntax = "proto3";
 
 package order;
 
-option go_package = "order/";
+option go_package = "authorizationservice/order";
 
 service AuthService {
   rpc Register(RegisterRequest) returns (AuthResponse);
   rpc Login(LoginRequest) returns (AuthResponse);
-  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
 }
 
 message RegisterRequest {
@@ -23,15 +22,4 @@ message LoginRequest {
 message AuthResponse {
   string token = 1;
   string error = 2;
-}
-
-message ValidateTokenRequest {
-  string token = 1;
-}
-
-message ValidateTokenResponse {
-  bool valid = 1;
-  string error = 2;
-  string login = 3;
-  int32 user_id = 4;
 }
