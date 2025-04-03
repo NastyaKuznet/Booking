@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS rooms (
     id SERIAL PRIMARY KEY,
     room_number TEXT NOT NULL,
     description TEXT,
+    available BOOLEAN DEFAULT true,
     price INT
 );
 

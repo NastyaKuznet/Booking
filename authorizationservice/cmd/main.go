@@ -94,52 +94,6 @@ func (s *AuthServer) Login(ctx context.Context, req *order.LoginRequest) (*order
 	return &order.AuthResponse{Token: token}, nil
 }
 
-func (s *AuthServer) ValidateToken(ctx context.Context, req *order.ValidateTokenRequest) (*order.ValidateTokenResponse, error) {
-	token, err := jwt.ParseWithClaims(req.Token, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(signingKey), nil
-	})
-
-	if err != nil {
-		return &order.ValidateTokenResponse{
-			Valid: false,
-			Error: err.Error(),
-		}, nil
-	}
-
-	if !token.Valid {
-		return &order.ValidateTokenResponse{
-			Valid: false,
-			Error: "invalid token",
-		}, nil
-	}
-
-	claims, ok := token.Claims.(*jwt.StandardClaims)
-	if !ok {
-		return &order.ValidateTokenResponse{
-			Valid: false,
-			Error: "invalid token claims",
-		}, nil
-	}
-
-	var userID int32
-	err = s.db.QueryRow(ctx, "SELECT id FROM users WHERE login = $1", claims.Subject).Scan(&userID)
-	if err != nil {
-		return &order.ValidateTokenResponse{
-			Valid: false,
-			Error: "user not found",
-		}, nil
-	}
-
-	return &order.ValidateTokenResponse{
-		Valid:  true,
-		Login:  claims.Subject,
-		UserId: userID,
-	}, nil
-}
-
 func generatePasswordHash(password string) string {
 	hash := sha1.New()
 	hash.Write([]byte(password))

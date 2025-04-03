@@ -38,8 +38,9 @@ type Server struct {
 	db *pgxpool.Pool
 }
 
+// Реализация методов gRPC
 func (s *Server) GetAllRooms(ctx context.Context, req *api.GetAllRoomsRequest) (*api.GetAllRoomsResponse, error) {
-	rows, err := s.db.Query(ctx, `SELECT id, room_number, description, price FROM rooms`)
+	rows, err := s.db.Query(ctx, `SELECT id, room_number, description, available, price FROM rooms`)
 	if err != nil {
 		return nil, err
 	}
@@ -59,13 +60,13 @@ func (s *Server) GetAllRooms(ctx context.Context, req *api.GetAllRoomsRequest) (
 
 func (s *Server) GetAvailableRooms(ctx context.Context, req *api.GetAvailableRoomsRequest) (*api.GetAvailableRoomsResponse, error) {
 	rows, err := s.db.Query(ctx, `
-		SELECT id, room_number, description, price 
+		SELECT id, room_number, description, available, price 
 		FROM rooms 
 		WHERE available = true 
 		AND id NOT IN (
 			SELECT room_id 
 			FROM bookings 
-			WHERE (start_date <= $2 AND end_date >= $1)
+			WHERE (start_date <= $1 AND end_date >= $2)
 		)`, req.StartDate, req.EndDate)
 	if err != nil {
 		return nil, err
@@ -104,32 +105,4 @@ func (s *Server) CancelBooking(ctx context.Context, req *api.CancelBookingReques
 	}
 
 	return &api.CancelBookingResponse{Success: true, Message: "Booking canceled successfully"}, nil
-}
-
-func (s *Server) GetAllBookings(ctx context.Context, req *api.GetAllBookingsRequest) (*api.GetAllBookingsResponse, error) {
-	rows, err := s.db.Query(ctx, `
-        SELECT id, room_id, user_id, start_date, end_date 
-        FROM bookings
-        ORDER BY start_date DESC`)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var bookings []*api.Booking
-	for rows.Next() {
-		var booking api.Booking
-		if err := rows.Scan(
-			&booking.Id,
-			&booking.RoomId,
-			&booking.UserId,
-			&booking.StartDate,
-			&booking.EndDate,
-		); err != nil {
-			return nil, err
-		}
-		bookings = append(bookings, &booking)
-	}
-
-	return &api.GetAllBookingsResponse{Bookings: bookings}, nil
 }
